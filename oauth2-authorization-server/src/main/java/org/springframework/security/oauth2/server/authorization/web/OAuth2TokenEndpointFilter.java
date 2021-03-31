@@ -38,6 +38,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.AuthorizationGrantType2;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
@@ -45,6 +46,7 @@ import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
+import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames2;
 import org.springframework.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
 import org.springframework.security.oauth2.core.http.converter.OAuth2ErrorHttpMessageConverter;
 import org.springframework.security.oauth2.server.authorization.authentication.OAuth2AccessTokenAuthenticationToken;
@@ -54,6 +56,7 @@ import org.springframework.security.oauth2.server.authorization.authentication.O
 import org.springframework.security.oauth2.server.authorization.authentication.OAuth2ClientCredentialsAuthenticationToken;
 import org.springframework.security.oauth2.server.authorization.authentication.OAuth2RefreshTokenAuthenticationProvider;
 import org.springframework.security.oauth2.server.authorization.authentication.OAuth2RefreshTokenAuthenticationToken;
+import org.springframework.security.oauth2.server.authorization.authentication.OAuth2JwtGrantAuthenticationToken;
 import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -85,6 +88,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * @author Joe Grandja
  * @author Madhu Bhat
  * @author Daniel Garnier-Moiroux
+ * @author Rafal Lewczuk
  * @since 0.0.1
  * @see AuthenticationManager
  * @see OAuth2AuthorizationCodeAuthenticationProvider
@@ -130,6 +134,7 @@ public class OAuth2TokenEndpointFilter extends OncePerRequestFilter {
 		converters.add(new AuthorizationCodeAuthenticationConverter());
 		converters.add(new RefreshTokenAuthenticationConverter());
 		converters.add(new ClientCredentialsAuthenticationConverter());
+		converters.add(new JwtGrantAuthenticationConverter());
 		this.authorizationGrantAuthenticationConverter = new DelegatingAuthenticationConverter(converters);
 	}
 
@@ -330,6 +335,54 @@ public class OAuth2TokenEndpointFilter extends OncePerRequestFilter {
 
 			return new OAuth2ClientCredentialsAuthenticationToken(
 					clientPrincipal, requestedScopes, additionalParameters);
+		}
+	}
+
+	private static class JwtGrantAuthenticationConverter implements AuthenticationConverter {
+
+		@Override
+		public Authentication convert(HttpServletRequest request) {
+			// grant_type (REQUIRED)
+			String grantType = request.getParameter(OAuth2ParameterNames.GRANT_TYPE);
+			if (!AuthorizationGrantType2.JWT_BEARER.getValue().equals(grantType)) {
+				return null;
+			}
+
+			Authentication clientPrincipal = SecurityContextHolder.getContext().getAuthentication();
+
+			MultiValueMap<String, String> parameters = OAuth2EndpointUtils.getParameters(request);
+
+			// assertion (REQUIRED)
+			String assertion = parameters.getFirst(OAuth2ParameterNames2.ASSERTION);
+			if (!StringUtils.hasText(assertion) ||
+					parameters.get(OAuth2ParameterNames2.ASSERTION).size() != 1) {
+				throwError(OAuth2ErrorCodes.INVALID_REQUEST, OAuth2ParameterNames2.ASSERTION);
+			}
+
+			// scope (OPTIONAL)
+			String scope = parameters.getFirst(OAuth2ParameterNames.SCOPE);
+			if (StringUtils.hasText(scope) &&
+					parameters.get(OAuth2ParameterNames.SCOPE).size() != 1) {
+				throwError(OAuth2ErrorCodes.INVALID_REQUEST, OAuth2ParameterNames.SCOPE);
+			}
+			Set<String> requestedScopes = null;
+			if (StringUtils.hasText(scope)) {
+				requestedScopes = new HashSet<>(
+						Arrays.asList(StringUtils.delimitedListToStringArray(scope, " ")));
+			}
+
+			// @formatter:off
+			Map<String, Object> additionalParameters = parameters
+					.entrySet()
+					.stream()
+					.filter(e -> !e.getKey().equals(OAuth2ParameterNames.GRANT_TYPE) &&
+							!e.getKey().equals(OAuth2ParameterNames.SCOPE) &&
+							!e.getKey().equals(OAuth2ParameterNames2.ASSERTION))
+					.collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get(0)));
+			// @formatter:on
+
+			return new OAuth2JwtGrantAuthenticationToken(
+					assertion, clientPrincipal, requestedScopes, additionalParameters);
 		}
 	}
 }
