@@ -43,6 +43,8 @@ import org.springframework.security.oauth2.server.authorization.authentication.O
 import org.springframework.security.oauth2.server.authorization.authentication.OAuth2ClientCredentialsAuthenticationProvider;
 import org.springframework.security.oauth2.server.authorization.authentication.OAuth2RefreshTokenAuthenticationProvider;
 import org.springframework.security.oauth2.server.authorization.authentication.OAuth2TokenRevocationAuthenticationProvider;
+import org.springframework.security.oauth2.server.authorization.client.DefaultJwtToRegisteredClientResolver;
+import org.springframework.security.oauth2.server.authorization.client.JwtToRegisteredClientResolver;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.ProviderSettings;
 import org.springframework.security.oauth2.server.authorization.oidc.web.OidcProviderConfigurationEndpointFilter;
@@ -274,6 +276,19 @@ public final class OAuth2AuthorizationServerConfigurer<B extends HttpSecurityBui
 			builder.setSharedObject(RegisteredClientRepository.class, registeredClientRepository);
 		}
 		return registeredClientRepository;
+	}
+
+	private static <B extends HttpSecurityBuilder<B>> JwtToRegisteredClientResolver getJwtToRegisteredClientResolver(B builder) {
+		JwtToRegisteredClientResolver resolver = builder.getSharedObject(JwtToRegisteredClientResolver.class);
+		if (resolver == null) {
+			try {
+				resolver = builder.getSharedObject(ApplicationContext.class).getBean(JwtToRegisteredClientResolver.class);
+			} catch (NoSuchBeanDefinitionException e) {
+				resolver = new DefaultJwtToRegisteredClientResolver(getRegisteredClientRepository(builder));
+			}
+			builder.setSharedObject(JwtToRegisteredClientResolver.class, resolver);
+		}
+		return resolver;
 	}
 
 	private static <B extends HttpSecurityBuilder<B>> OAuth2AuthorizationService getAuthorizationService(B builder) {
