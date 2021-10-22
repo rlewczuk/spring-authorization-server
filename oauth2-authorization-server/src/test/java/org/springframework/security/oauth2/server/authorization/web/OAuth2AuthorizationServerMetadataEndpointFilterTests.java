@@ -115,14 +115,17 @@ public class OAuth2AuthorizationServerMetadataEndpointFilterTests {
 		assertThat(authorizationServerMetadataResponse).contains("\"issuer\":\"https://example.com/issuer1\"");
 		assertThat(authorizationServerMetadataResponse).contains("\"authorization_endpoint\":\"https://example.com/issuer1/oauth2/v1/authorize\"");
 		assertThat(authorizationServerMetadataResponse).contains("\"token_endpoint\":\"https://example.com/issuer1/oauth2/v1/token\"");
-		assertThat(authorizationServerMetadataResponse).contains("\"token_endpoint_auth_methods_supported\":[\"client_secret_basic\",\"client_secret_post\"]");
+		assertThat(authorizationServerMetadataResponse).contains("\"token_endpoint_auth_methods_supported\":[\"client_secret_basic\",\"client_secret_post\",\"client_secret_jwt\",\"private_key_jwt\"]");
+		assertThat(authorizationServerMetadataResponse).contains("\"token_endpoint_auth_signing_alg_values_supported\":[\"HS256\",\"HS384\",\"HS512\",\"ES256\",\"ES384\",\"ES512\",\"PS256\",\"PS384\",\"PS512\",\"RS256\",\"RS384\",\"RS512\"]");
 		assertThat(authorizationServerMetadataResponse).contains("\"jwks_uri\":\"https://example.com/issuer1/oauth2/v1/jwks\"");
 		assertThat(authorizationServerMetadataResponse).contains("\"response_types_supported\":[\"code\"]");
 		assertThat(authorizationServerMetadataResponse).contains("\"grant_types_supported\":[\"authorization_code\",\"client_credentials\",\"refresh_token\"]");
 		assertThat(authorizationServerMetadataResponse).contains("\"revocation_endpoint\":\"https://example.com/issuer1/oauth2/v1/revoke\"");
-		assertThat(authorizationServerMetadataResponse).contains("\"revocation_endpoint_auth_methods_supported\":[\"client_secret_basic\",\"client_secret_post\"]");
+		assertThat(authorizationServerMetadataResponse).contains("\"revocation_endpoint_auth_methods_supported\":[\"client_secret_basic\",\"client_secret_post\",\"client_secret_jwt\",\"private_key_jwt\"]");
+		assertThat(authorizationServerMetadataResponse).contains("\"revocation_endpoint_auth_signing_alg_values_supported\":[\"HS256\",\"HS384\",\"HS512\",\"ES256\",\"ES384\",\"ES512\",\"PS256\",\"PS384\",\"PS512\",\"RS256\",\"RS384\",\"RS512\"]");
 		assertThat(authorizationServerMetadataResponse).contains("\"introspection_endpoint\":\"https://example.com/issuer1/oauth2/v1/introspect\"");
-		assertThat(authorizationServerMetadataResponse).contains("\"introspection_endpoint_auth_methods_supported\":[\"client_secret_basic\",\"client_secret_post\"]");
+		assertThat(authorizationServerMetadataResponse).contains("\"introspection_endpoint_auth_methods_supported\":[\"client_secret_basic\",\"client_secret_post\",\"client_secret_jwt\",\"private_key_jwt\"]");
+		assertThat(authorizationServerMetadataResponse).contains("\"introspection_endpoint_auth_signing_alg_values_supported\":[\"HS256\",\"HS384\",\"HS512\",\"ES256\",\"ES384\",\"ES512\",\"PS256\",\"PS384\",\"PS512\",\"RS256\",\"RS384\",\"RS512\"]");
 		assertThat(authorizationServerMetadataResponse).contains("\"code_challenge_methods_supported\":[\"plain\",\"S256\"]");
 	}
 
@@ -167,14 +170,17 @@ public class OAuth2AuthorizationServerMetadataEndpointFilterTests {
 		assertThat(authorizationServerMetadataResponse).contains("\"issuer\":\"http://localhost\"");
 		assertThat(authorizationServerMetadataResponse).contains("\"authorization_endpoint\":\"http://localhost/oauth2/authorize\"");
 		assertThat(authorizationServerMetadataResponse).contains("\"token_endpoint\":\"http://localhost/oauth2/token\"");
-		assertThat(authorizationServerMetadataResponse).contains("\"token_endpoint_auth_methods_supported\":[\"client_secret_basic\",\"client_secret_post\"]");
+		assertThat(authorizationServerMetadataResponse).contains("\"token_endpoint_auth_methods_supported\":[\"client_secret_basic\",\"client_secret_post\",\"client_secret_jwt\",\"private_key_jwt\"]");
+		assertThat(authorizationServerMetadataResponse).contains("\"token_endpoint_auth_signing_alg_values_supported\":[\"HS256\",\"HS384\",\"HS512\",\"ES256\",\"ES384\",\"ES512\",\"PS256\",\"PS384\",\"PS512\",\"RS256\",\"RS384\",\"RS512\"]");
 		assertThat(authorizationServerMetadataResponse).contains("\"jwks_uri\":\"http://localhost/oauth2/jwks\"");
 		assertThat(authorizationServerMetadataResponse).contains("\"response_types_supported\":[\"code\"]");
 		assertThat(authorizationServerMetadataResponse).contains("\"grant_types_supported\":[\"authorization_code\",\"client_credentials\",\"refresh_token\"]");
 		assertThat(authorizationServerMetadataResponse).contains("\"revocation_endpoint\":\"http://localhost/oauth2/revoke\"");
-		assertThat(authorizationServerMetadataResponse).contains("\"revocation_endpoint_auth_methods_supported\":[\"client_secret_basic\",\"client_secret_post\"]");
+		assertThat(authorizationServerMetadataResponse).contains("\"revocation_endpoint_auth_methods_supported\":[\"client_secret_basic\",\"client_secret_post\",\"client_secret_jwt\",\"private_key_jwt\"]");
+		assertThat(authorizationServerMetadataResponse).contains("\"revocation_endpoint_auth_signing_alg_values_supported\":[\"HS256\",\"HS384\",\"HS512\",\"ES256\",\"ES384\",\"ES512\",\"PS256\",\"PS384\",\"PS512\",\"RS256\",\"RS384\",\"RS512\"]");
 		assertThat(authorizationServerMetadataResponse).contains("\"introspection_endpoint\":\"http://localhost/oauth2/introspect\"");
-		assertThat(authorizationServerMetadataResponse).contains("\"introspection_endpoint_auth_methods_supported\":[\"client_secret_basic\",\"client_secret_post\"]");
+		assertThat(authorizationServerMetadataResponse).contains("\"introspection_endpoint_auth_methods_supported\":[\"client_secret_basic\",\"client_secret_post\",\"client_secret_jwt\",\"private_key_jwt\"]");
+		assertThat(authorizationServerMetadataResponse).contains("\"introspection_endpoint_auth_signing_alg_values_supported\":[\"HS256\",\"HS384\",\"HS512\",\"ES256\",\"ES384\",\"ES512\",\"PS256\",\"PS384\",\"PS512\",\"RS256\",\"RS384\",\"RS512\"]");
 		assertThat(authorizationServerMetadataResponse).contains("\"code_challenge_methods_supported\":[\"plain\",\"S256\"]");
 	}
 

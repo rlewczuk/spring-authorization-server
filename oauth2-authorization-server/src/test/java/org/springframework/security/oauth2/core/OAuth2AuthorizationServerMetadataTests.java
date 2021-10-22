@@ -24,6 +24,8 @@ import java.util.List;
 import org.junit.Test;
 
 import org.springframework.security.oauth2.core.OAuth2AuthorizationServerMetadata.Builder;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
@@ -50,6 +52,8 @@ public class OAuth2AuthorizationServerMetadataTests {
 				.authorizationEndpoint("https://example.com/issuer1/oauth2/authorize")
 				.tokenEndpoint("https://example.com/issuer1/oauth2/token")
 				.tokenEndpointAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue())
+				.tokenEndpointAuthenticationSigningAlgorithm(MacAlgorithm.HS256.getName())
+				.tokenEndpointAuthenticationSigningAlgorithm(SignatureAlgorithm.RS256.getName())
 				.jwkSetUrl("https://example.com/issuer1/oauth2/jwks")
 				.scope("openid")
 				.responseType("code")
@@ -57,8 +61,12 @@ public class OAuth2AuthorizationServerMetadataTests {
 				.grantType("client_credentials")
 				.tokenRevocationEndpoint("https://example.com/issuer1/oauth2/revoke")
 				.tokenRevocationEndpointAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue())
+				.tokenRevocationEndpointAuthenticationSigningAlgorithm(MacAlgorithm.HS256.getName())
+				.tokenRevocationEndpointAuthenticationSigningAlgorithm(SignatureAlgorithm.RS256.getName())
 				.tokenIntrospectionEndpoint("https://example.com/issuer1/oauth2/introspect")
 				.tokenIntrospectionEndpointAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue())
+				.tokenIntrospectionEndpointAuthenticationSigningAlgorithm(MacAlgorithm.HS256.getName())
+				.tokenIntrospectionEndpointAuthenticationSigningAlgorithm(SignatureAlgorithm.RS256.getName())
 				.codeChallengeMethod("plain")
 				.codeChallengeMethod("S256")
 				.claim("a-claim", "a-value")
@@ -68,14 +76,17 @@ public class OAuth2AuthorizationServerMetadataTests {
 		assertThat(authorizationServerMetadata.getAuthorizationEndpoint()).isEqualTo(url("https://example.com/issuer1/oauth2/authorize"));
 		assertThat(authorizationServerMetadata.getTokenEndpoint()).isEqualTo(url("https://example.com/issuer1/oauth2/token"));
 		assertThat(authorizationServerMetadata.getTokenEndpointAuthenticationMethods()).containsExactly(ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue());
+		assertThat(authorizationServerMetadata.getTokenEndpointAuthenticationSigningAlgorithms()).containsExactly(MacAlgorithm.HS256.getName(), SignatureAlgorithm.RS256.getName());
 		assertThat(authorizationServerMetadata.getJwkSetUrl()).isEqualTo(url("https://example.com/issuer1/oauth2/jwks"));
 		assertThat(authorizationServerMetadata.getScopes()).containsExactly("openid");
 		assertThat(authorizationServerMetadata.getResponseTypes()).containsExactly("code");
 		assertThat(authorizationServerMetadata.getGrantTypes()).containsExactlyInAnyOrder("authorization_code", "client_credentials");
 		assertThat(authorizationServerMetadata.getTokenRevocationEndpoint()).isEqualTo(url("https://example.com/issuer1/oauth2/revoke"));
 		assertThat(authorizationServerMetadata.getTokenRevocationEndpointAuthenticationMethods()).containsExactly(ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue());
+		assertThat(authorizationServerMetadata.getTokenRevocationEndpointAuthenticationSigningAlgorithms()).containsExactly(MacAlgorithm.HS256.getName(), SignatureAlgorithm.RS256.getName());
 		assertThat(authorizationServerMetadata.getTokenIntrospectionEndpoint()).isEqualTo(url("https://example.com/issuer1/oauth2/introspect"));
 		assertThat(authorizationServerMetadata.getTokenIntrospectionEndpointAuthenticationMethods()).containsExactly(ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue());
+		assertThat(authorizationServerMetadata.getTokenIntrospectionEndpointAuthenticationSigningAlgorithms()).containsExactly(MacAlgorithm.HS256.getName(), SignatureAlgorithm.RS256.getName());
 		assertThat(authorizationServerMetadata.getCodeChallengeMethods()).containsExactlyInAnyOrder("plain", "S256");
 		assertThat(authorizationServerMetadata.getClaimAsString("a-claim")).isEqualTo("a-value");
 	}
@@ -294,6 +305,39 @@ public class OAuth2AuthorizationServerMetadataTests {
 	}
 
 	@Test
+	public void buildWhenTokenEndpointAuthenticationSigningAlgorithmsNotListThenThrowIllegalArgumentException() {
+		Builder builder = this.minimalBuilder
+				.claims((claims) -> claims.put(OAuth2AuthorizationServerMetadataClaimNames.TOKEN_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED, "not-a-list"));
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessageStartingWith("tokenEndpointAuthenticationSigningAlgorithms must be of type List");
+	}
+
+	@Test
+	public void buildWhenTokenEndpointAuthenticationSigningAlgorithmsEmptyListThenThrowIllegalArgumentException() {
+		Builder builder = this.minimalBuilder
+				.claims((claims) -> claims.put(OAuth2AuthorizationServerMetadataClaimNames.TOKEN_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED, Collections.emptyList()));
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessageStartingWith("tokenEndpointAuthenticationSigningAlgorithms cannot be empty");
+	}
+
+	@Test
+	public void buildWhenTokenEndpointAuthenticationSigningAlgorithmsAddingOrRemoveingThenCorrectValues() {
+		OAuth2AuthorizationServerMetadata authorizationServerMetadata = this.minimalBuilder
+				.tokenEndpointAuthenticationSigningAlgorithm("HS256")
+				.tokenEndpointAuthenticationSigningAlgorithms(signingAlgorithms -> {
+					signingAlgorithms.clear();
+					signingAlgorithms.add("RS256");
+				})
+				.build();
+		assertThat(authorizationServerMetadata.getTokenEndpointAuthenticationSigningAlgorithms()).containsExactly("RS256");
+	}
+
+
+	@Test
 	public void buildWhenJwksUriNotUrlThenThrowIllegalArgumentException() {
 		Builder builder = this.minimalBuilder
 				.claims((claims) -> claims.put(OAuth2AuthorizationServerMetadataClaimNames.JWKS_URI, "not an url"));
@@ -466,6 +510,38 @@ public class OAuth2AuthorizationServerMetadataTests {
 	}
 
 	@Test
+	public void buildWhenTokenRevocationEndpointAuthenticationSigningAlgorithmsNotListThenThrowIllegalArgumentException() {
+		Builder builder = this.minimalBuilder
+				.claims((claims) -> claims.put(OAuth2AuthorizationServerMetadataClaimNames.REVOCATION_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED, "not-a-list"));
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessageStartingWith("tokenRevocationEndpointAuthenticationSigningAlgorithms must be of type List");
+	}
+
+	@Test
+	public void buildWhenTokenRevocationEndpointAuthenticationSigningAlgorithmsEmptyListThenThrowIllegalArgumentException() {
+		Builder builder = this.minimalBuilder
+				.claims((claims) -> claims.put(OAuth2AuthorizationServerMetadataClaimNames.REVOCATION_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED, Collections.emptyList()));
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessageStartingWith("tokenRevocationEndpointAuthenticationSigningAlgorithms cannot be empty");
+	}
+
+	@Test
+	public void buildWhenTokenRevocationEndpointAuthenticationSigningAlgorithmsAddingOrRemoveingThenCorrectValues() {
+		OAuth2AuthorizationServerMetadata authorizationServerMetadata = this.minimalBuilder
+				.tokenRevocationEndpointAuthenticationSigningAlgorithm("HS256")
+				.tokenRevocationEndpointAuthenticationSigningAlgorithms(signingAlgorithms -> {
+					signingAlgorithms.clear();
+					signingAlgorithms.add("RS256");
+				})
+				.build();
+		assertThat(authorizationServerMetadata.getTokenRevocationEndpointAuthenticationSigningAlgorithms()).containsExactly("RS256");
+	}
+
+	@Test
 	public void buildWhenTokenIntrospectionEndpointNotUrlThenThrowIllegalArgumentException() {
 		Builder builder = this.minimalBuilder
 				.tokenIntrospectionEndpoint("not a valid URL");
@@ -507,6 +583,39 @@ public class OAuth2AuthorizationServerMetadataTests {
 
 		assertThat(authorizationServerMetadata.getTokenIntrospectionEndpointAuthenticationMethods()).containsExactly("some-authentication-method");
 	}
+
+	@Test
+	public void buildWhenTokenIntrospectionEndpointAuthenticationSigningAlgorithmsNotListThenThrowIllegalArgumentException() {
+		Builder builder = this.minimalBuilder
+				.claims((claims) -> claims.put(OAuth2AuthorizationServerMetadataClaimNames.INTROSPECTION_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED, "not-a-list"));
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessageStartingWith("tokenIntrospectionEndpointAuthenticationSigningAlgorithms must be of type List");
+	}
+
+	@Test
+	public void buildWhenTokenIntrospectionEndpointAuthenticationSigningAlgorithmsEmptyListThenThrowIllegalArgumentException() {
+		Builder builder = this.minimalBuilder
+				.claims((claims) -> claims.put(OAuth2AuthorizationServerMetadataClaimNames.INTROSPECTION_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED, Collections.emptyList()));
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessageStartingWith("tokenIntrospectionEndpointAuthenticationSigningAlgorithms cannot be empty");
+	}
+
+	@Test
+	public void buildWhenTokenIntrospectionEndpointAuthenticationSigningAlgorithmsAddingOrRemoveingThenCorrectValues() {
+		OAuth2AuthorizationServerMetadata authorizationServerMetadata = this.minimalBuilder
+				.tokenIntrospectionEndpointAuthenticationSigningAlgorithm("HS256")
+				.tokenIntrospectionEndpointAuthenticationSigningAlgorithms(signingAlgorithms -> {
+					signingAlgorithms.clear();
+					signingAlgorithms.add("RS256");
+				})
+				.build();
+		assertThat(authorizationServerMetadata.getTokenIntrospectionEndpointAuthenticationSigningAlgorithms()).containsExactly("RS256");
+	}
+
 
 	@Test
 	public void buildWhenCodeChallengeMethodsNotListThenThrowIllegalArgumentException() {

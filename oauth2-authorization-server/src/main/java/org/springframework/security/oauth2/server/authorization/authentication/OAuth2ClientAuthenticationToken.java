@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
 @Transient
 public class OAuth2ClientAuthenticationToken extends AbstractAuthenticationToken {
 	private static final long serialVersionUID = Version.SERIAL_VERSION_UID;
+	private final String issuer;
 	private final String clientId;
 	private final RegisteredClient registeredClient;
 	private final ClientAuthenticationMethod clientAuthenticationMethod;
@@ -55,11 +56,37 @@ public class OAuth2ClientAuthenticationToken extends AbstractAuthenticationToken
 	 * @param credentials the client credentials
 	 * @param additionalParameters the additional parameters
 	 */
+	@Deprecated
 	public OAuth2ClientAuthenticationToken(String clientId, ClientAuthenticationMethod clientAuthenticationMethod,
 			@Nullable Object credentials, @Nullable Map<String, Object> additionalParameters) {
 		super(Collections.emptyList());
 		Assert.hasText(clientId, "clientId cannot be empty");
 		Assert.notNull(clientAuthenticationMethod, "clientAuthenticationMethod cannot be null");
+		this.issuer = null;
+		this.clientId = clientId;
+		this.registeredClient = null;
+		this.clientAuthenticationMethod = clientAuthenticationMethod;
+		this.credentials = credentials;
+		this.additionalParameters = Collections.unmodifiableMap(
+				additionalParameters != null ? additionalParameters : Collections.emptyMap());
+	}
+
+	/**
+	 * Constructs an {@code OAuth2ClientAuthenticationToken} using the provided parameters.
+	 *
+	 * @param issuer the issuer identifier
+	 * @param clientId the client identifier
+	 * @param clientAuthenticationMethod the authentication method used by the client
+	 * @param credentials the client credentials
+	 * @param additionalParameters the additional parameters
+	 */
+	public OAuth2ClientAuthenticationToken(String issuer, String clientId, ClientAuthenticationMethod clientAuthenticationMethod,
+			@Nullable Object credentials, @Nullable Map<String, Object> additionalParameters) {
+		super(Collections.emptyList());
+		Assert.hasText(issuer, "issuer cannot be empty");
+		Assert.hasText(clientId, "clientId cannot be empty");
+		Assert.notNull(clientAuthenticationMethod, "clientAuthenticationMethod cannot be null");
+		this.issuer = issuer;
 		this.clientId = clientId;
 		this.registeredClient = null;
 		this.clientAuthenticationMethod = clientAuthenticationMethod;
@@ -80,6 +107,7 @@ public class OAuth2ClientAuthenticationToken extends AbstractAuthenticationToken
 		super(Collections.emptyList());
 		Assert.notNull(registeredClient, "registeredClient cannot be null");
 		Assert.notNull(clientAuthenticationMethod, "clientAuthenticationMethod cannot be null");
+		this.issuer = null;
 		this.clientId = registeredClient.getClientId();
 		this.registeredClient = registeredClient;
 		this.clientAuthenticationMethod = clientAuthenticationMethod;
@@ -116,6 +144,10 @@ public class OAuth2ClientAuthenticationToken extends AbstractAuthenticationToken
 	 */
 	public ClientAuthenticationMethod getClientAuthenticationMethod() {
 		return this.clientAuthenticationMethod;
+	}
+
+	public String getIssuer() {
+		return issuer;
 	}
 
 	/**

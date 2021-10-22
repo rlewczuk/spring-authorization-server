@@ -31,6 +31,7 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResp
 import org.springframework.security.oauth2.core.oidc.OidcProviderConfiguration;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.core.oidc.http.converter.OidcProviderConfigurationHttpMessageConverter;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.server.authorization.config.ProviderSettings;
 import org.springframework.security.oauth2.server.authorization.web.WebAttributes;
@@ -86,6 +87,20 @@ public final class OidcProviderConfigurationEndpointFilter extends OncePerReques
 				.tokenEndpoint(asUrl(issuer, this.providerSettings.getTokenEndpoint()))
 				.tokenEndpointAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue())
 				.tokenEndpointAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST.getValue())
+				.tokenEndpointAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_JWT.getValue())
+				.tokenEndpointAuthenticationMethod(ClientAuthenticationMethod.PRIVATE_KEY_JWT.getValue())
+				.tokenEndpointAuthenticationSigningAlgorithm(MacAlgorithm.HS256.getName())
+				.tokenEndpointAuthenticationSigningAlgorithm(MacAlgorithm.HS384.getName())
+				.tokenEndpointAuthenticationSigningAlgorithm(MacAlgorithm.HS512.getName())
+				.tokenEndpointAuthenticationSigningAlgorithm(SignatureAlgorithm.ES256.getName())
+				.tokenEndpointAuthenticationSigningAlgorithm(SignatureAlgorithm.ES384.getName())
+				.tokenEndpointAuthenticationSigningAlgorithm(SignatureAlgorithm.ES512.getName())
+				.tokenEndpointAuthenticationSigningAlgorithm(SignatureAlgorithm.PS256.getName())
+				.tokenEndpointAuthenticationSigningAlgorithm(SignatureAlgorithm.PS384.getName())
+				.tokenEndpointAuthenticationSigningAlgorithm(SignatureAlgorithm.PS512.getName())
+				.tokenEndpointAuthenticationSigningAlgorithm(SignatureAlgorithm.RS256.getName())
+				.tokenEndpointAuthenticationSigningAlgorithm(SignatureAlgorithm.RS384.getName())
+				.tokenEndpointAuthenticationSigningAlgorithm(SignatureAlgorithm.RS512.getName())
 				.jwkSetUrl(asUrl(issuer, this.providerSettings.getJwkSetEndpoint()))
 				.responseType(OAuth2AuthorizationResponseType.CODE.getValue())
 				.grantType(AuthorizationGrantType.AUTHORIZATION_CODE.getValue())

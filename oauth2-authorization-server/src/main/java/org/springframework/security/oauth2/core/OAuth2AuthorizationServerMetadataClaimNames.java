@@ -47,6 +47,12 @@ public interface OAuth2AuthorizationServerMetadataClaimNames {
 	String TOKEN_ENDPOINT_AUTH_METHODS_SUPPORTED = "token_endpoint_auth_methods_supported";
 
 	/**
+	 * {@code token_endpoint_auth_signing_alg_values_supported} - the JWS signing  algorithms supported by the token
+	 * endpoint authentication for the {@code private_key_jwt} and {@code client_secret_jwt} authentication methods
+	 */
+	String TOKEN_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED = "token_endpoint_auth_signing_alg_values_supported";
+
+	/**
 	 * {@code jwks_uri} - the {@code URL} of the JSON Web Key Set
 	 */
 	String JWKS_URI = "jwks_uri";
@@ -77,6 +83,12 @@ public interface OAuth2AuthorizationServerMetadataClaimNames {
 	String REVOCATION_ENDPOINT_AUTH_METHODS_SUPPORTED = "revocation_endpoint_auth_methods_supported";
 
 	/**
+	 * {@code token_endpoint_auth_signing_alg_values_supported} - the JWS signing  algorithms supported by the token revocation
+	 * endpoint authentication for the {@code private_key_jwt} and {@code client_secret_jwt} authentication methods
+	 */
+	String REVOCATION_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED = "revocation_endpoint_auth_signing_alg_values_supported";
+
+	/**
 	 * {@code introspection_endpoint} - the {@code URL} of the OAuth 2.0 Token Introspection Endpoint
 	 */
 	String INTROSPECTION_ENDPOINT = "introspection_endpoint";
@@ -85,6 +97,12 @@ public interface OAuth2AuthorizationServerMetadataClaimNames {
 	 * {@code introspection_endpoint_auth_methods_supported} - the client authentication methods supported by the OAuth 2.0 Token Introspection Endpoint
 	 */
 	String INTROSPECTION_ENDPOINT_AUTH_METHODS_SUPPORTED = "introspection_endpoint_auth_methods_supported";
+
+	/**
+	 * {@code token_endpoint_auth_signing_alg_values_supported} - the JWS signing  algorithms supported by the token introspection
+	 * endpoint authentication for the {@code private_key_jwt} and {@code client_secret_jwt} authentication methods
+	 */
+	String INTROSPECTION_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED = "introspection_endpoint_auth_signing_alg_values_supported";
 
 	/**
 	 * {@code code_challenge_methods_supported} - the Proof Key for Code Exchange (PKCE) {@code code_challenge_method} values supported

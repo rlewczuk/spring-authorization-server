@@ -32,6 +32,8 @@ import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.OAuth2AuthorizationServerMetadata;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponseType;
 import org.springframework.security.oauth2.core.http.converter.OAuth2AuthorizationServerMetadataHttpMessageConverter;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.server.authorization.config.ProviderSettings;
 import org.springframework.security.web.util.UrlUtils;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -92,6 +94,7 @@ public final class OAuth2AuthorizationServerMetadataEndpointFilter extends OnceP
 				.authorizationEndpoint(asUrl(issuer, this.providerSettings.getAuthorizationEndpoint()))
 				.tokenEndpoint(asUrl(issuer, this.providerSettings.getTokenEndpoint()))
 				.tokenEndpointAuthenticationMethods(clientAuthenticationMethods())
+				.tokenEndpointAuthenticationSigningAlgorithms(tokenEndpointSignatureAlgorithms())
 				.jwkSetUrl(asUrl(issuer, this.providerSettings.getJwkSetEndpoint()))
 				.responseType(OAuth2AuthorizationResponseType.CODE.getValue())
 				.grantType(AuthorizationGrantType.AUTHORIZATION_CODE.getValue())
@@ -99,8 +102,10 @@ public final class OAuth2AuthorizationServerMetadataEndpointFilter extends OnceP
 				.grantType(AuthorizationGrantType.REFRESH_TOKEN.getValue())
 				.tokenRevocationEndpoint(asUrl(issuer, this.providerSettings.getTokenRevocationEndpoint()))
 				.tokenRevocationEndpointAuthenticationMethods(clientAuthenticationMethods())
+				.tokenRevocationEndpointAuthenticationSigningAlgorithms(tokenEndpointSignatureAlgorithms())
 				.tokenIntrospectionEndpoint(asUrl(issuer, this.providerSettings.getTokenIntrospectionEndpoint()))
 				.tokenIntrospectionEndpointAuthenticationMethods(clientAuthenticationMethods())
+				.tokenIntrospectionEndpointAuthenticationSigningAlgorithms(tokenEndpointSignatureAlgorithms())
 				.codeChallengeMethod("plain")
 				.codeChallengeMethod("S256")
 				.build();
@@ -125,6 +130,25 @@ public final class OAuth2AuthorizationServerMetadataEndpointFilter extends OnceP
 		return (authenticationMethods) -> {
 			authenticationMethods.add(ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue());
 			authenticationMethods.add(ClientAuthenticationMethod.CLIENT_SECRET_POST.getValue());
+			authenticationMethods.add(ClientAuthenticationMethod.CLIENT_SECRET_JWT.getValue());
+			authenticationMethods.add(ClientAuthenticationMethod.PRIVATE_KEY_JWT.getValue());
+		};
+	}
+
+	private static Consumer<List<String>> tokenEndpointSignatureAlgorithms() {
+		return (signatureAlgorithms) -> {
+			signatureAlgorithms.add(MacAlgorithm.HS256.getName());
+			signatureAlgorithms.add(MacAlgorithm.HS384.getName());
+			signatureAlgorithms.add(MacAlgorithm.HS512.getName());
+			signatureAlgorithms.add(SignatureAlgorithm.ES256.getName());
+			signatureAlgorithms.add(SignatureAlgorithm.ES384.getName());
+			signatureAlgorithms.add(SignatureAlgorithm.ES512.getName());
+			signatureAlgorithms.add(SignatureAlgorithm.PS256.getName());
+			signatureAlgorithms.add(SignatureAlgorithm.PS384.getName());
+			signatureAlgorithms.add(SignatureAlgorithm.PS512.getName());
+			signatureAlgorithms.add(SignatureAlgorithm.RS256.getName());
+			signatureAlgorithms.add(SignatureAlgorithm.RS384.getName());
+			signatureAlgorithms.add(SignatureAlgorithm.RS512.getName());
 		};
 	}
 

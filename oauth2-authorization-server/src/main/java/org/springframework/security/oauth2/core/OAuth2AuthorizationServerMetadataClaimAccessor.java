@@ -68,6 +68,17 @@ public interface OAuth2AuthorizationServerMetadataClaimAccessor extends ClaimAcc
 	}
 
 	/**
+	 * Returns the JWS signing  algorithms supported by the token endpoint authentication for
+	 * the {@code private_key_jwt} and {@code client_secret_jwt} authentication methods
+	 *
+	 * @return the JWS signing  algorithms supported by the token endpoint authentication for
+	 *         the {@code private_key_jwt} and {@code client_secret_jwt} authentication methods
+	 */
+	default List<String> getTokenEndpointAuthenticationSigningAlgorithms() {
+		return getClaimAsStringList(OAuth2AuthorizationServerMetadataClaimNames.TOKEN_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED);
+	}
+
+	/**
 	 * Returns the {@code URL} of the JSON Web Key Set {@code (jwks_uri)}.
 	 *
 	 * @return the {@code URL} of the JSON Web Key Set
@@ -122,6 +133,17 @@ public interface OAuth2AuthorizationServerMetadataClaimAccessor extends ClaimAcc
 	}
 
 	/**
+	 * Returns the JWS signing  algorithms supported by the token revocation endpoint authentication for
+	 * the {@code private_key_jwt} and {@code client_secret_jwt} authentication methods
+	 *
+	 * @return the JWS signing  algorithms supported by the token revocation endpoint authentication for
+	 *         the {@code private_key_jwt} and {@code client_secret_jwt} authentication methods
+	 */
+	default List<String> getTokenRevocationEndpointAuthenticationSigningAlgorithms() {
+		return getClaimAsStringList(OAuth2AuthorizationServerMetadataClaimNames.REVOCATION_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED);
+	}
+
+	/**
 	 * Returns the {@code URL} of the OAuth 2.0 Token Introspection Endpoint {@code (introspection_endpoint)}.
 	 *
 	 * @return the {@code URL} of the OAuth 2.0 Token Introspection Endpoint
@@ -137,6 +159,17 @@ public interface OAuth2AuthorizationServerMetadataClaimAccessor extends ClaimAcc
 	 */
 	default List<String> getTokenIntrospectionEndpointAuthenticationMethods() {
 		return getClaimAsStringList(OAuth2AuthorizationServerMetadataClaimNames.INTROSPECTION_ENDPOINT_AUTH_METHODS_SUPPORTED);
+	}
+
+	/**
+	 * Returns the JWS signing  algorithms supported by the token endpoint authentication for
+	 * the {@code private_key_jwt} and {@code client_secret_jwt} authentication methods
+	 *
+	 * @return the JWS signing  algorithms supported by the token endpoint authentication for
+	 *         the {@code private_key_jwt} and {@code client_secret_jwt} authentication methods
+	 */
+	default List<String> getTokenIntrospectionEndpointAuthenticationSigningAlgorithms() {
+		return getClaimAsStringList(OAuth2AuthorizationServerMetadataClaimNames.INTROSPECTION_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED);
 	}
 
 	/**

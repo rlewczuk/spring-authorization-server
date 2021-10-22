@@ -20,6 +20,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
@@ -27,6 +28,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
@@ -34,6 +36,11 @@ import org.springframework.security.oauth2.core.OAuth2TokenType;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
+import org.springframework.security.oauth2.jose.jws.JwsAlgorithm;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtDecoderFactory;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
@@ -47,6 +54,7 @@ import org.springframework.util.StringUtils;
  * @author Joe Grandja
  * @author Patryk Kostrzewa
  * @author Daniel Garnier-Moiroux
+ * @author Rafal Lewczuk
  * @since 0.0.1
  * @see AuthenticationProvider
  * @see OAuth2ClientAuthenticationToken
@@ -56,13 +64,21 @@ import org.springframework.util.StringUtils;
  */
 public final class OAuth2ClientAuthenticationProvider implements AuthenticationProvider {
 	private static final String CLIENT_AUTHENTICATION_ERROR_URI = "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-01#section-3.2.1";
+
+	private static final ClientAuthenticationMethod JWT_CLIENT_ASSERTION_AUTHENTICATION_METHOD =
+			new ClientAuthenticationMethod("urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
+
 	private static final OAuth2TokenType AUTHORIZATION_CODE_TOKEN_TYPE = new OAuth2TokenType(OAuth2ParameterNames.CODE);
 	private final RegisteredClientRepository registeredClientRepository;
 	private final OAuth2AuthorizationService authorizationService;
+	private JwtDecoderFactory<RegisteredClientJwtAssertionAuthenticationContext> jwtDecoderFactory;
 	private PasswordEncoder passwordEncoder;
 
 	/**
 	 * Constructs an {@code OAuth2ClientAuthenticationProvider} using the provided parameters.
+	 *
+	 * @deprecated Please use constructor with {@code providerSettings} argument,
+	 *             otherwise client JWT assertion authentication will not work properly
 	 *
 	 * @param registeredClientRepository the repository of registered clients
 	 * @param authorizationService the authorization service
@@ -74,6 +90,7 @@ public final class OAuth2ClientAuthenticationProvider implements AuthenticationP
 		this.registeredClientRepository = registeredClientRepository;
 		this.authorizationService = authorizationService;
 		this.passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+		this.jwtDecoderFactory = new RegisteredClientJwtAssertionDecoderFactory();
 	}
 
 	/**
@@ -91,6 +108,15 @@ public final class OAuth2ClientAuthenticationProvider implements AuthenticationP
 
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+		OAuth2ClientAuthenticationToken clientAuthentication =
+				(OAuth2ClientAuthenticationToken) authentication;
+
+		return JWT_CLIENT_ASSERTION_AUTHENTICATION_METHOD.equals(clientAuthentication.getClientAuthenticationMethod()) ?
+				authenticateClientAssertion(authentication) :
+				authenticationClientCredentials(authentication);
+	}
+
+	private Authentication authenticationClientCredentials(Authentication authentication) throws AuthenticationException {
 		OAuth2ClientAuthenticationToken clientAuthentication =
 				(OAuth2ClientAuthenticationToken) authentication;
 
@@ -123,6 +149,48 @@ public final class OAuth2ClientAuthenticationProvider implements AuthenticationP
 
 		return new OAuth2ClientAuthenticationToken(registeredClient,
 				clientAuthentication.getClientAuthenticationMethod(), clientAuthentication.getCredentials());
+	}
+
+	private Authentication authenticateClientAssertion(Authentication authentication) throws AuthenticationException {
+		OAuth2ClientAuthenticationToken clientAuthentication =
+				(OAuth2ClientAuthenticationToken) authentication;
+
+		String clientId = clientAuthentication.getPrincipal().toString();
+		RegisteredClient registeredClient = this.registeredClientRepository.findByClientId(clientId);
+		if (registeredClient == null) {
+			throwInvalidClient(OAuth2ParameterNames.CLIENT_ID);
+		}
+
+		Set<ClientAuthenticationMethod> allowedAuthenticationMethods = registeredClient.getClientAuthenticationMethods();
+
+		if (!allowedAuthenticationMethods.contains(ClientAuthenticationMethod.CLIENT_SECRET_JWT) &&
+				!allowedAuthenticationMethods.contains(ClientAuthenticationMethod.PRIVATE_KEY_JWT)) {
+			throwInvalidClient("authentication_method");
+		}
+
+		boolean credentialsAuthenticated = false;
+
+		try {
+			JwtDecoder jwtDecoder = this.jwtDecoderFactory.createDecoder(
+					RegisteredClientJwtAssertionAuthenticationContext.build(registeredClient, clientAuthentication));
+			jwtDecoder.decode(clientAuthentication.getCredentials().toString());
+			credentialsAuthenticated = true;
+		} catch (JwtException e) {
+			throwInvalidClient(OAuth2ParameterNames.CLIENT_ASSERTION);
+		}
+
+		boolean pkceAuthenticated = authenticatePkceIfAvailable(clientAuthentication, registeredClient);
+		credentialsAuthenticated = credentialsAuthenticated || pkceAuthenticated;
+		if (!credentialsAuthenticated) {
+			throwInvalidClient("credentials");
+		}
+
+		JwsAlgorithm tokenEndpointSigningAlgorithm = registeredClient.getClientSettings().getTokenEndpointSigningAlgorithm();
+		ClientAuthenticationMethod clientAuthentiationMethod = tokenEndpointSigningAlgorithm instanceof MacAlgorithm ?
+				ClientAuthenticationMethod.CLIENT_SECRET_JWT : ClientAuthenticationMethod.PRIVATE_KEY_JWT;
+
+		return new OAuth2ClientAuthenticationToken(registeredClient,
+				clientAuthentiationMethod, clientAuthentication.getCredentials());
 	}
 
 	@Override

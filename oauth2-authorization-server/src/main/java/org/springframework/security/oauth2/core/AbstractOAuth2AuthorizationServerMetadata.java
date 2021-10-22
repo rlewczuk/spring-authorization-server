@@ -129,6 +129,29 @@ public abstract class AbstractOAuth2AuthorizationServerMetadata implements OAuth
 		}
 
 		/**
+		 * Add this client signing algorithm to the collection of {@code token_endpoint_auth_signing_alg_values_supported}
+		 * in the resulting {@link AbstractOAuth2AuthorizationServerMetadata}, OPTIONAL.
+		 *
+		 * @param signingAlgorithm the JWS signing  algorithms supported by the token endpoint
+		 * @return the {@link AbstractBuilder} for further configuration
+		 */
+		public B tokenEndpointAuthenticationSigningAlgorithm(String signingAlgorithm) {
+			addClaimToClaimList(OAuth2AuthorizationServerMetadataClaimNames.TOKEN_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED, signingAlgorithm);
+			return getThis();
+		}
+
+		/**
+		 * A {@code Consumer} of the client signing algorithms(s) allowing the ability to add, replace, or remove.
+		 *
+		 * @param signingAlgorithmsConsumer a {@code Consumer} of the client signing algorithm(s) supported by the OAuth 2.0 Token Endpoint
+		 * @return the {@link AbstractBuilder} for further configuration
+		 */
+		public B tokenEndpointAuthenticationSigningAlgorithms(Consumer<List<String>> signingAlgorithmsConsumer) {
+			acceptClaimValues(OAuth2AuthorizationServerMetadataClaimNames.TOKEN_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED, signingAlgorithmsConsumer);
+			return getThis();
+		}
+
+		/**
 		 * Use this {@code jwks_uri} in the resulting {@link AbstractOAuth2AuthorizationServerMetadata}, OPTIONAL.
 		 *
 		 * @param jwkSetUrl the {@code URL} of the JSON Web Key Set
@@ -241,6 +264,29 @@ public abstract class AbstractOAuth2AuthorizationServerMetadata implements OAuth
 		}
 
 		/**
+		 * Add this client signing algorithm to the collection of {@code revocation_endpoint_auth_signing_alg_values_supported}
+		 * in the resulting {@link AbstractOAuth2AuthorizationServerMetadata}, OPTIONAL.
+		 *
+		 * @param signingAlgorithm the JWS signing  algorithms supported by the token revocation endpoint
+		 * @return the {@link AbstractBuilder} for further configuration
+		 */
+		public B tokenRevocationEndpointAuthenticationSigningAlgorithm(String signingAlgorithm) {
+			addClaimToClaimList(OAuth2AuthorizationServerMetadataClaimNames.REVOCATION_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED, signingAlgorithm);
+			return getThis();
+		}
+
+		/**
+		 * A {@code Consumer} of the client signing algorithms(s) allowing the ability to add, replace, or remove.
+		 *
+		 * @param signingAlgorithmsConsumer a {@code Consumer} of the client signing algorithm(s) supported by the OAuth 2.0 Token Revocation Endpoint
+		 * @return the {@link AbstractBuilder} for further configuration
+		 */
+		public B tokenRevocationEndpointAuthenticationSigningAlgorithms(Consumer<List<String>> signingAlgorithmsConsumer) {
+			acceptClaimValues(OAuth2AuthorizationServerMetadataClaimNames.REVOCATION_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED, signingAlgorithmsConsumer);
+			return getThis();
+		}
+
+		/**
 		 * Use this {@code introspection_endpoint} in the resulting {@link AbstractOAuth2AuthorizationServerMetadata}, OPTIONAL.
 		 *
 		 * @param tokenIntrospectionEndpoint the {@code URL} of the OAuth 2.0 Token Introspection Endpoint
@@ -270,6 +316,29 @@ public abstract class AbstractOAuth2AuthorizationServerMetadata implements OAuth
 		 */
 		public B tokenIntrospectionEndpointAuthenticationMethods(Consumer<List<String>> authenticationMethodsConsumer) {
 			acceptClaimValues(OAuth2AuthorizationServerMetadataClaimNames.INTROSPECTION_ENDPOINT_AUTH_METHODS_SUPPORTED, authenticationMethodsConsumer);
+			return getThis();
+		}
+
+		/**
+		 * Add this client signing algorithm to the collection of {@code introspection_endpoint_auth_signing_alg_values_supported}
+		 * in the resulting {@link AbstractOAuth2AuthorizationServerMetadata}, OPTIONAL.
+		 *
+		 * @param signingAlgorithm the JWS signing  algorithms supported by the token introspection endpoint
+		 * @return the {@link AbstractBuilder} for further configuration
+		 */
+		public B tokenIntrospectionEndpointAuthenticationSigningAlgorithm(String signingAlgorithm) {
+			addClaimToClaimList(OAuth2AuthorizationServerMetadataClaimNames.INTROSPECTION_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED, signingAlgorithm);
+			return getThis();
+		}
+
+		/**
+		 * A {@code Consumer} of the client signing algorithms(s) allowing the ability to add, replace, or remove.
+		 *
+		 * @param signingAlgorithmsConsumer a {@code Consumer} of the client signing algorithm(s) supported by the OAuth 2.0 Token Introspection Endpoint
+		 * @return the {@link AbstractBuilder} for further configuration
+		 */
+		public B tokenIntrospectionEndpointAuthenticationSigningAlgorithms(Consumer<List<String>> signingAlgorithmsConsumer) {
+			acceptClaimValues(OAuth2AuthorizationServerMetadataClaimNames.INTROSPECTION_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED, signingAlgorithmsConsumer);
 			return getThis();
 		}
 
@@ -340,6 +409,10 @@ public abstract class AbstractOAuth2AuthorizationServerMetadata implements OAuth
 				Assert.isInstanceOf(List.class, getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.TOKEN_ENDPOINT_AUTH_METHODS_SUPPORTED), "tokenEndpointAuthenticationMethods must be of type List");
 				Assert.notEmpty((List<?>) getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.TOKEN_ENDPOINT_AUTH_METHODS_SUPPORTED), "tokenEndpointAuthenticationMethods cannot be empty");
 			}
+			if (getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.TOKEN_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED) != null) {
+				Assert.isInstanceOf(List.class, getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.TOKEN_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED), "tokenEndpointAuthenticationSigningAlgorithms must be of type List");
+				Assert.notEmpty((List<?>) getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.TOKEN_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED), "tokenEndpointAuthenticationSigningAlgorithms cannot be empty");
+			}
 			if (getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.JWKS_URI) != null) {
 				validateURL(getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.JWKS_URI), "jwksUri must be a valid URL");
 			}
@@ -361,12 +434,20 @@ public abstract class AbstractOAuth2AuthorizationServerMetadata implements OAuth
 				Assert.isInstanceOf(List.class, getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.REVOCATION_ENDPOINT_AUTH_METHODS_SUPPORTED), "tokenRevocationEndpointAuthenticationMethods must be of type List");
 				Assert.notEmpty((List<?>) getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.REVOCATION_ENDPOINT_AUTH_METHODS_SUPPORTED), "tokenRevocationEndpointAuthenticationMethods cannot be empty");
 			}
+			if (getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.REVOCATION_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED) != null) {
+				Assert.isInstanceOf(List.class, getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.REVOCATION_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED), "tokenRevocationEndpointAuthenticationSigningAlgorithms must be of type List");
+				Assert.notEmpty((List<?>) getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.REVOCATION_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED), "tokenRevocationEndpointAuthenticationSigningAlgorithms cannot be empty");
+			}
 			if (getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.INTROSPECTION_ENDPOINT) != null) {
 				validateURL(getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.INTROSPECTION_ENDPOINT), "tokenIntrospectionEndpoint must be a valid URL");
 			}
 			if (getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.INTROSPECTION_ENDPOINT_AUTH_METHODS_SUPPORTED) != null) {
 				Assert.isInstanceOf(List.class, getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.INTROSPECTION_ENDPOINT_AUTH_METHODS_SUPPORTED), "tokenIntrospectionEndpointAuthenticationMethods must be of type List");
 				Assert.notEmpty((List<?>) getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.INTROSPECTION_ENDPOINT_AUTH_METHODS_SUPPORTED), "tokenIntrospectionEndpointAuthenticationMethods cannot be empty");
+			}
+			if (getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.INTROSPECTION_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED) != null) {
+				Assert.isInstanceOf(List.class, getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.INTROSPECTION_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED), "tokenIntrospectionEndpointAuthenticationSigningAlgorithms must be of type List");
+				Assert.notEmpty((List<?>) getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.INTROSPECTION_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED), "tokenIntrospectionEndpointAuthenticationSigningAlgorithms cannot be empty");
 			}
 			if (getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.CODE_CHALLENGE_METHODS_SUPPORTED) != null) {
 				Assert.isInstanceOf(List.class, getClaims().get(OAuth2AuthorizationServerMetadataClaimNames.CODE_CHALLENGE_METHODS_SUPPORTED), "codeChallengeMethods must be of type List");
